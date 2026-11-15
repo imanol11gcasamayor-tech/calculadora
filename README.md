@@ -1,21 +1,16 @@
 # Calculadora mágica (estilo iPhone)
 
-Calculadora que se comporta como la de iOS y esconde dos efectos. Es una app web instalable (PWA): no necesita cuenta de desarrollador ni App Store.
+App web instalable (PWA). Súbela a GitHub Pages, ábrela en Safari y usa Compartir → Añadir a pantalla de inicio. Si ya la tenías instalada, bórrala y vuelve a añadirla para ver el icono y el diseño nuevos.
 
-## Publicar en GitHub Pages
-1. Crea un repositorio y sube todo el contenido de esta carpeta.
-2. Settings → Pages → Branch: `main` / root → Save.
-3. Abre la URL `https://TU_USUARIO.github.io/TU_REPO/` en Safari.
-4. Compartir → **Añadir a pantalla de inicio**. Se abre a pantalla completa, sin barra de Safari, y funciona sin conexión.
+Ajustes: mantén pulsado 1 s el icono de calculadora de arriba a la derecha.
 
-## Ajustes ocultos
-Mantén pulsado 1 segundo el icono de calculadora (arriba a la derecha).
+## Valor a forzar
+- **Automático**: usa la hora del móvil más un adelanto en segundos (por defecto 45), para que cuando el público lo vea no haya cambiado el minuto. Opciones: fecha DDMMAA, hora HHMM, fecha y hora DDMMHHMM (8 cifras) o DDMMAAHHMM (10 cifras, solo en tu móvil).
+- **Manual**: el número que escribas.
 
-- **Normal**: calculadora real (encadenado, %, ±, borrar, repetir `=`, coma decimal).
-- **Forzar**: el primer número que se teclee muestra el valor elegido (cualquier tecla numérica, da igual cuál). Valores: número fijo, fecha de hoy (DDMMAAAA, DDMMAA, DDMM) o hora, con desfase de días.
-- **Colectivo**: los espectadores dictan números que tú tecleas con `+`. En el último `+`, mantén pulsado 0,7 s (se registra como un `+` normal); el siguiente número que teclees, con cualquier dígito, mostrará el que falta y `=` dará exactamente el valor elegido.
+Una calculadora real de iPhone en vertical muestra como máximo 9 cifras. Para calculadoras reales usa fecha, hora o DDMMHHMM. Un día menor que 10 pierde el cero (05/11/26 sale 51126), igual que en una calculadora real.
 
-## Límites conocidos
-- Con 8 dígitos la pantalla muestra `15.112.026`; activa «sin puntos de millar» para que parezca una fecha.
-- Una fecha con día menor que 10 pierde el cero inicial.
-- Pulsa más dígitos de los previstos y se ignoran.
+## Trucos
+1. **Forzar en tu móvil**: eliges Forzar. Pasas el móvil, el espectador teclea cualquier número y sale el valor.
+2. **Colectivo en tu calculadora**: eliges Colectivo. Tecleas lo que dicten con +. En el último + mantén 0,7 s; el siguiente número que teclees (cualquier dígito) muestra el que falta, y = da el valor.
+3. **Dictado a calculadoras reales**: eliges Dictado. Mantén % 0,7 s para ver el guion. Cada espectador: número cualquiera, + primer número, + segundo número, − su número inicial, =. Todos obtienen el valor.
