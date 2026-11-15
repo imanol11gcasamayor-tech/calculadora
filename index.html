@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calculadora"><meta name="theme-color" content="#000">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3"><link rel="manifest" href="manifest.webmanifest">
+<title>Calculadora</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;background:#000;overflow:hidden;position:fixed;width:100%;font-family:-apple-system,"SF Pro Display",system-ui,sans-serif;color:#fff;touch-action:manipulation}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 4.07vw calc(env(safe-area-inset-bottom)*.4 + 2.5vw)}
+.top{display:flex;justify-content:space-between;height:11vw;margin-top:0}
+.top .b{width:11vw;height:11vw;background:#1c1c1e;border:1px solid rgba(255,255,255,.1)}
+#disp{flex:1;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 .5vw 5vw;font-weight:300;font-size:16.8vw;white-space:nowrap;overflow:hidden;line-height:1;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2.1vw}
+.b{aspect-ratio:1;border-radius:50%;border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font:350 9.4vw -apple-system,"SF Pro Display",sans-serif;color:#fff;background:#333;padding:0;transition:filter .25s}
+.b:active{filter:brightness(1.6);transition:none}
+.g{background:linear-gradient(#636363,#555)}.o{background:linear-gradient(#ff9f0a,#ff9500);border-color:#ffb340}
+.o.sel{background:#fff;color:#ff9500}.o.sel svg{stroke:#ff9500}.o.sel .f{fill:#ff9500}
+.o:active{filter:brightness(1.25)}.o.sel:active{filter:brightness(.85)}
+svg{width:36%;height:36%;stroke:#fff;stroke-width:8;stroke-linecap:round;fill:none}.f{fill:#fff;stroke:none}
+.top svg{width:60%;height:60%;stroke-width:5}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.96);display:none;overflow:auto;padding:calc(env(safe-area-inset-top) + 16px) 20px 40px;font-size:16px}
+#ov h2{font-weight:600;margin:0 0 14px}#ov label{display:block;margin:14px 0 6px;color:#8e8e93;font-size:13px}
+#ov select,#ov input[type=text],#ov input[type=number]{width:100%;font-size:17px;padding:12px;border-radius:12px;border:0;background:#1c1c1e;color:#fff}
+#ov button{margin-top:22px;width:100%;padding:14px;border:0;border-radius:14px;background:#ff9500;color:#fff;font-size:17px;font-weight:600}
+#ov .row{display:flex;gap:10px;align-items:center;margin-top:14px}#ov p{color:#8e8e93;font-size:13px;line-height:1.4}
+#pv{color:#ff9f0a;font-size:20px;margin-top:10px}
+#hist div{padding:12px 0;border-bottom:1px solid #2c2c2e;text-align:right;font-size:20px}
+</style></head><body>
+<div id="app">
+ <div class="top"><button class="b" id="bh"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38"/><path d="M50 28V50H33"/></svg></button>
+ <button class="b" id="bm"><svg viewBox="0 0 100 100"><rect x="18" y="8" width="64" height="84" rx="10"/><rect class="f" x="26" y="16" width="48" height="16" rx="3"/><g class="f"><circle cx="34" cy="48" r="4"/><circle cx="50" cy="48" r="4"/><circle cx="66" cy="48" r="4"/><circle cx="34" cy="62" r="4"/><circle cx="50" cy="62" r="4"/><circle cx="66" cy="62" r="4"/><circle cx="34" cy="76" r="4"/><circle cx="50" cy="76" r="4"/><circle cx="66" cy="76" r="4"/></g></svg></button></div>
+ <div id="disp">0</div>
+ <div class="grid" id="kb"></div>
+</div>
+<div id="ov"></div>
+<script>
+const $=s=>document.querySelector(s);
+const I={
+ '+':'<svg viewBox="0 0 100 100"><path d="M8 50H92M50 8V92"/></svg>','-':'<svg viewBox="0 0 100 100"><path d="M8 50H92"/></svg>',
+ '*':'<svg viewBox="0 0 100 100"><path d="M18 18L82 82M82 18L18 82"/></svg>','/':'<svg viewBox="0 0 100 100"><path d="M8 50H92"/><circle class="f" cx="50" cy="17" r="7"/><circle class="f" cx="50" cy="83" r="7"/></svg>',
+ '=':'<svg viewBox="0 0 100 100"><path d="M12 33H88M12 67H88"/></svg>',
+ bs:'<svg viewBox="0 0 100 100" style="width:44%;height:44%;stroke-width:7;stroke-linejoin:round"><path d="M30 14H88Q96 14 96 22V78Q96 86 88 86H30L5 50Z"/><path d="M50 36L76 64M76 36L50 64"/></svg>',
+ pm:'<svg viewBox="0 0 100 100" style="width:40%;height:40%;stroke-width:7"><path d="M6 18H30M18 6V30M70 84H94M68 10L28 90"/></svg>',
+ pc:'<span style="font-size:8vw">%</span>'};
+const keys=[['bs','g'],['ac','g'],['pc','g'],['/','o'],['7'],['8'],['9'],['*','o'],['4'],['5'],['6'],['-','o'],['1'],['2'],['3'],['+','o'],['pm'],['0'],[','],['=','o']];
+const kb=$('#kb');keys.forEach(([k,c])=>{const b=document.createElement('button');b.className='b '+(c||'');b.dataset.k=k;b.innerHTML=k=='ac'?'AC':k==','?'<span style="font-size:9vw">,</span>':I[k]||k;kb.append(b)});
+// ---------- Config (oculta: mantén pulsado el icono de arriba a la derecha) ----------
+let cfg={mode:'normal',src:'auto',auto:'date',fixed:'',sec:45,nodots:false};
+try{Object.assign(cfg,JSON.parse(localStorage.getItem('cfg2')||'{}'))}catch(e){}
+const p2=n=>String(n).padStart(2,'0');
+function payload(){if(cfg.src=='manual')return String(cfg.fixed||'').replace(/[^0-9.,]/g,'').replace(',','.').slice(0,10);
+ const d=new Date(Date.now()+(+cfg.sec||0)*1e3),D=p2(d.getDate())+p2(d.getMonth()+1),Y=p2(d.getFullYear()%100),H=p2(d.getHours())+p2(d.getMinutes()),a=cfg.auto;
+ return a=='date'?D+Y:a=='time'?H:a=='dt8'?D+H:D+Y+H}
+// ---------- Motor tipo iPhone ----------
+let cur=null,acc=null,op=null,lastOp=null,lastB=0,just=false,err=false,fi=0,fp='',comp=false,target=0,hist=[];
+const num=s=>parseFloat(s)||0;
+function calc(a,b,o){return o=='+'?a+b:o=='-'?a-b:o=='*'?a*b:(b==0?NaN:a/b)}
+function fmtS(s){let neg=s[0]=='-';if(neg)s=s.slice(1);let [i,d]=s.split('.');if(!cfg.nodots)i=i.replace(/\B(?=(\d{3})+(?!\d))/g,'.');return(neg?'-':'')+i+(d!==undefined?','+d:'')}
+function fmtN(n){if(!isFinite(n))return'Error';if(n===0)return'0';let s=String(parseFloat(n.toPrecision(9)));if(s.includes('e')||Math.abs(n)>=1e9||Math.abs(n)<1e-8){return n.toExponential(5).replace(/\.?0+e/,'e').replace('.',',').replace('e+','e')}return fmtS(s)}
+function show(){const d=$('#disp');d.textContent=err?'Error':cur!==null?fmtS(cur):fmtN(acc??0);
+ let fs=16.8;d.style.fontSize=fs+'vw';while(d.scrollWidth>d.clientWidth&&fs>5){fs-=.6;d.style.fontSize=fs+'vw'}
+ document.querySelectorAll('.o').forEach(b=>b.classList.toggle('sel',b.dataset.k==op&&cur===null&&!just&&b.dataset.k!='='));
+ $('[data-k=ac]').textContent=cur!==null&&cur!=='0'?'C':'AC'}
+function digit(d){if(err)return;
+ if(just){acc=null;op=null;just=false}
+ const first=acc===null&&!op;
+ if(cur===null){cur='';if(first&&cfg.mode=='feed'){fi=0;fp=payload()}
+  if(comp){let df=Math.round((target-(acc||0))*1e8)/1e8;if(df<0&&(op=='+'||op=='-')){op=op=='+'?'-':'+';df=-df}fp=String(df);fi=0}}
+ const feeding=(first&&cfg.mode=='feed')||comp;
+ if(feeding){if(fi>=fp.length)return;d=fp[fi++];if(d=='.'||d==',')d='.';if(d=='.'&&cur.includes('.'))return;cur=cur===''&&d=='.'?'0.':cur+d;show();return}
+ if(d==','){if(cur.includes('.'))return;cur=(cur===''?'0':cur)+'.'}else{if(cur.replace(/[-.]/g,'').length>=9)return;cur=(cur===''||cur==='0')?d:cur=='-0'?'-'+d:cur+d}
+ show()}
+function oper(o){if(err)return;
+ if(cur!==null){if(op&&!just){push(acc,num(cur),op)}else acc=num(cur)}else if(acc===null)acc=0;
+ just=false;cur=null;op=o;comp=false;show()}
+function push(a,b,o){const r=calc(a,b,o);hist.push(fmtN(a)+' '+({'*':'×','/':'÷','-':'−'}[o]||o)+' '+fmtN(b)+' = '+fmtN(r));if(isNaN(r)){err=true}acc=r}
+function eq(){if(err)return;
+ if(op){const b=cur!==null?num(cur):acc;lastOp=op;lastB=b;push(acc,b,op);op=null;cur=null;just=true}
+ else if(just&&lastOp){push(acc,lastB,lastOp)}
+ comp=false;show()}
+function pct(){if(err)return;if(cur!==null){let v=num(cur);v=(op=='+'||op=='-')?acc*v/100:v/100;cur=String(parseFloat(v.toPrecision(9)))}else if(acc!==null){acc/=100;just=false}show()}
+function neg(){if(err)return;if(cur!==null)cur=cur[0]=='-'?cur.slice(1):'-'+cur;else if(acc!==null)acc=-acc;else cur='-0';show()}
+function bs(){if(err||cur===null)return;cur=cur.slice(0,-1);if(cur===''||cur=='-')cur='0';show()}
+function ac(){if(cur!==null&&cur!=='0'&&!err){cur='0';fi=0}else{cur=null;acc=null;op=null;just=false;err=false;comp=false;fi=0}show()}
+let lp=null,lf=false;
+function press(k){if(k>='0'&&k<='9')digit(k);else if(k==',')digit(',');else if('+-*/'.includes(k))oper(k);else if(k=='=')eq();else if(k=='pc')pct();else if(k=='pm')neg();else if(k=='bs')bs();else if(k=='ac')ac()}
+kb.addEventListener('pointerdown',e=>{const b=e.target.closest('.b');if(!b)return;lf=false;
+ if(b.dataset.k=='+'&&cfg.mode=='collective')lp=setTimeout(()=>{lf=true;target=num(payload())},650);if(b.dataset.k=='pc'&&cfg.mode=='dictado')lp=setTimeout(()=>{lf=true;openDict()},650)});
+kb.addEventListener('pointerup',e=>{const b=e.target.closest('.b');clearTimeout(lp);if(!b)return;const k=b.dataset.k;if(lf&&k=='pc'){lf=false;return}press(k);if(lf){comp=true;lf=false}});
+kb.addEventListener('pointercancel',()=>clearTimeout(lp));
+// ---------- Historial y ajustes ----------
+const ov=$('#ov');
+$('#bh').onclick=()=>{ov.innerHTML='<h2>Historial</h2><div id="hist">'+(hist.slice(-30).reverse().map(h=>'<div>'+h+'</div>').join('')||'<p>Sin cálculos</p>')+'</div><button onclick="ov.style.display=\'none\'">Cerrar</button>';ov.style.display='block'};
+let t3=null;const bm=$('#bm');bm.onpointerdown=()=>t3=setTimeout(openCfg,700);bm.onpointerup=bm.onpointerleave=()=>clearTimeout(t3);
+function openDict(){const T=num(payload());if(!T)return;const a=Math.floor(T*(.2+Math.random()*.6)),f=n=>fmtS(String(n));
+ ov.innerHTML=`<h2>Dictado</h2><p style="font-size:18px;color:#fff;line-height:1.8">1. Que cada uno teclee un número cualquiera (3 cifras).<br>2. Suma <b>${f(a)}</b><br>3. Suma <b>${f(T-a)}</b><br>4. Resta su número inicial<br>5. Pulsa = y saldrá <b style="color:#ff9f0a">${f(T)}</b></p>${String(T).length>9?'<p>Aviso: supera 9 cifras; una calculadora real no lo muestra.</p>':''}<button onclick="ov.style.display='none'">Cerrar</button>`;ov.style.display='block'}
+function openCfg(){const o=(v,t,s)=>`<option value="${v}"${s==v?' selected':''}>${t}</option>`;
+ ov.innerHTML=`<h2>Ajustes mágicos</h2>
+ <label>Truco</label><select id="m">${o('normal','Normal (calculadora real)',cfg.mode)}${o('feed','Forzar en tu móvil',cfg.mode)}${o('collective','Colectivo en tu calculadora (mantén +)',cfg.mode)}${o('dictado','Dictado a calculadoras reales (mantén %)',cfg.mode)}</select>
+ <label>Valor</label><select id="s">${o('auto','Automático: fecha y hora de ahora',cfg.src)}${o('manual','Manual: el que yo escriba',cfg.src)}</select>
+ <label>Qué usar en automático</label><select id="a">${o('date','Fecha DDMMAA (ej. 151126)',cfg.auto)}${o('time','Hora HHMM (ej. 1647)',cfg.auto)}${o('dt8','Fecha y hora DDMMHHMM (8 cifras)',cfg.auto)}${o('dt10','Fecha y hora DDMMAAHHMM (10 cifras, solo tu móvil)',cfg.auto)}</select>
+ <label>Adelanto en segundos: se usa la hora de dentro de ese tiempo</label><input type="number" id="d" value="${cfg.sec}">
+ <label>Número manual</label><input type="text" id="f" inputmode="decimal" value="${cfg.fixed}">
+ <div class="row"><input type="checkbox" id="n" ${cfg.nodots?'checked':''}> Mostrar sin puntos de millar</div>
+ <div id="pv"></div><p>Para volver aquí: mantén pulsado el icono de la calculadora (arriba a la derecha).</p><button id="sv">Guardar y volver</button>`;ov.style.display='block';
+ const pv=()=>{cfg.mode=$('#m').value;cfg.src=$('#s').value;cfg.auto=$('#a').value;cfg.sec=$('#d').value;cfg.fixed=$('#f').value;cfg.nodots=$('#n').checked;$('#pv').textContent='Valor ahora: '+(payload()||'—')};
+ ov.oninput=ov.onchange=pv;pv();const iv=setInterval(pv,1000);
+ $('#sv').onclick=()=>{clearInterval(iv);pv();try{localStorage.setItem('cfg2',JSON.stringify(cfg))}catch(e){}cur=null;acc=null;op=null;just=false;err=false;comp=false;ov.style.display='none';show()}}
+document.addEventListener('gesturestart',e=>e.preventDefault());
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+show();
+</script></body></html>
